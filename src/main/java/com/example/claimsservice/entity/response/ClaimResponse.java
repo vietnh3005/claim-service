@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 public class ClaimResponse {
 
     private Long claimId;
+    private Long policyId;
     private String claimNumber;
     private ClaimStatus claimStatus;
     private BigDecimal claimAmount;

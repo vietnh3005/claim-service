@@ -1,14 +1,17 @@
 package com.example.claimsservice.service.impl;
 
 import com.example.claimsservice.entity.ClaimStatus;
+import com.example.claimsservice.entity.PolicyStatus;
 import com.example.claimsservice.entity.dto.Claim;
 import com.example.claimsservice.entity.dto.ClaimStatusHistory;
+import com.example.claimsservice.entity.dto.Policy;
 import com.example.claimsservice.entity.request.CreateClaimRequest;
 import com.example.claimsservice.entity.request.UpdateClaimStatusRequest;
 import com.example.claimsservice.entity.response.ClaimResponse;
 import com.example.claimsservice.mapper.ClaimMapper;
 import com.example.claimsservice.repository.ClaimHistoryRepository;
 import com.example.claimsservice.repository.ClaimRepository;
+import com.example.claimsservice.repository.PolicyRepository;
 import com.example.claimsservice.service.ClaimService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,12 +29,22 @@ public class ClaimServiceImpl implements ClaimService {
 
     private final ClaimRepository claimRepository;
     private final ClaimHistoryRepository historyRepository;
+    private final PolicyRepository policyRepository;
     private final ClaimMapper mapper;
 
     @Override
     public ClaimResponse createClaim(CreateClaimRequest request) {
 
+        Policy policy = policyRepository
+                .findByPolicyIdAndPolicyStatus(
+                        request.getPolicyId(),
+                        PolicyStatus.ACTIVE
+                )
+                .orElseThrow(() ->
+                        new RuntimeException("Policy must be ACTIVE"));
+
         Claim claim = mapper.toEntity(request);
+        claim.setPolicy(policy);
 
         claim.setClaimStatus(ClaimStatus.SUBMITTED);
         claim.setClaimDate(LocalDate.now());

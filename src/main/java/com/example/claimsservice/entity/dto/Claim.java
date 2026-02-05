@@ -15,20 +15,21 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class Claim {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "claim_seq")
-    @SequenceGenerator(name = "claim_seq", sequenceName = "CLAIM_SEQ", allocationSize = 1)
+    @SequenceGenerator(name = "claim_seq", sequenceName = "CLAIM_SEQ")
     private Long claimId;
 
-    @Column(unique = true)
     private String claimNumber;
 
-    private Long policyId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "POLICY_ID", nullable = false)
+    private Policy policy;
 
     private LocalDate claimDate;
 
     private BigDecimal claimAmount;
-
     private BigDecimal approvedAmount;
 
     @Enumerated(EnumType.STRING)
