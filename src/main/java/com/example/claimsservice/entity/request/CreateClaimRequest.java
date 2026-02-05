@@ -1,6 +1,6 @@
 package com.example.claimsservice.entity.request;
 
-import com.example.claimsservice.entity.ClaimType;
+import com.example.claimsservice.entity.enums.ClaimType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;

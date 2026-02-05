@@ -1,7 +1,7 @@
 package com.example.claimsservice.entity.dto;
 
-import com.example.claimsservice.entity.ClaimStatus;
-import com.example.claimsservice.entity.ClaimType;
+import com.example.claimsservice.entity.enums.ClaimStatus;
+import com.example.claimsservice.entity.enums.ClaimType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

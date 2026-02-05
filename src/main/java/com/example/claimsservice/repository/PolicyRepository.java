@@ -1,6 +1,6 @@
 package com.example.claimsservice.repository;
 
-import com.example.claimsservice.entity.PolicyStatus;
+import com.example.claimsservice.entity.enums.PolicyStatus;
 import com.example.claimsservice.entity.dto.Policy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +14,6 @@ public interface PolicyRepository extends JpaRepository<Policy, Long> {
             Long id,
             PolicyStatus status
     );
+
+    boolean existsByPolicyId(Long id);
 }

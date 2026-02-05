@@ -13,6 +13,6 @@ import java.util.Optional;
 public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select c from Claim c where c.claimId = :id")
+    @Query("SELECT c FROM Claim c WHERE c.claimId = :id")
     Optional<Claim> findForUpdate(Long id);
 }

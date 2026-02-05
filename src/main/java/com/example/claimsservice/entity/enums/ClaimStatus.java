@@ -1,4 +1,4 @@
-package com.example.claimsservice.entity;
+package com.example.claimsservice.entity.enums;
 
 public enum ClaimStatus {
     SUBMITTED,

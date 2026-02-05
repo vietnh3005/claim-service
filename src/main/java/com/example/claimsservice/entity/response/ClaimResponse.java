@@ -1,6 +1,6 @@
 package com.example.claimsservice.entity.response;
 
-import com.example.claimsservice.entity.ClaimStatus;
+import com.example.claimsservice.entity.enums.ClaimStatus;
 import lombok.Builder;
 import lombok.Data;
 
