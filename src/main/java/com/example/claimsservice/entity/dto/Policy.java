@@ -20,9 +20,11 @@ public class Policy {
     @SequenceGenerator(name = "policy_seq", sequenceName = "POLICY_SEQ", allocationSize = 1)
     private Long policyId;
 
+    @Column(name = "POLICY_NUMBER", nullable = false)
     private String policyNumber;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "POLICY_STATUS", nullable = false)
     private PolicyStatus policyStatus;
 
     private LocalDate effectiveDate;

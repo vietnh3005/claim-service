@@ -18,7 +18,7 @@ public class ClaimStatusHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "history_seq")
-    @SequenceGenerator(name = "history_seq", sequenceName = "CLAIM_HISTORY_SEQ")
+    @SequenceGenerator(name = "history_seq", sequenceName = "CLAIM_HISTORY_SEQ", allocationSize = 1)
     private Long historyId;
 
     private Long claimId;

@@ -18,7 +18,7 @@ public class Claim {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "claim_seq")
-    @SequenceGenerator(name = "claim_seq", sequenceName = "CLAIM_SEQ")
+    @SequenceGenerator(name = "claim_seq", sequenceName = "CLAIM_SEQ", allocationSize = 1)
     private Long claimId;
 
     private String claimNumber;
