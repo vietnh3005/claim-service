@@ -1,8 +1,10 @@
 package com.example.claimsservice.controller;
 
+import com.example.claimsservice.entity.enums.ClaimStatus;
 import com.example.claimsservice.entity.request.CreateClaimRequest;
 import com.example.claimsservice.entity.request.UpdateClaimStatusRequest;
 import com.example.claimsservice.entity.response.ClaimResponse;
+import com.example.claimsservice.entity.response.ListClaimsResponse;
 import com.example.claimsservice.service.ClaimService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,18 @@ public class ClaimController {
         log.debug("Fetching claim {}", id);
 
         return service.getClaim(id);
+    }
+
+    @GetMapping
+    public ResponseEntity<ListClaimsResponse> listClaims(
+            @RequestParam(required = false) Long policyId,
+            @RequestParam(required = false) ClaimStatus status,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "0") int offset
+    ) {
+        return ResponseEntity.ok(
+                service.listClaims(policyId, status, limit, offset)
+        );
     }
 
     @PatchMapping("/{id}")

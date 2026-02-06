@@ -8,21 +8,30 @@ import com.example.claimsservice.entity.enums.PolicyStatus;
 import com.example.claimsservice.entity.request.CreateClaimRequest;
 import com.example.claimsservice.entity.request.UpdateClaimStatusRequest;
 import com.example.claimsservice.entity.response.ClaimResponse;
+import com.example.claimsservice.entity.response.ListClaimsResponse;
 import com.example.claimsservice.exception.ClaimNotFoundException;
+import com.example.claimsservice.exception.InvalidClaimAmountException;
 import com.example.claimsservice.exception.InvalidStatusTransitionException;
 import com.example.claimsservice.exception.PolicyNotActiveException;
 import com.example.claimsservice.mapper.ClaimMapper;
 import com.example.claimsservice.repository.ClaimRepository;
 import com.example.claimsservice.repository.PolicyRepository;
+import com.example.claimsservice.repository.spec.ClaimSpecification;
 import com.example.claimsservice.service.ClaimService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -49,6 +58,10 @@ public class ClaimServiceImpl implements ClaimService {
                 .orElseThrow(() -> new PolicyNotActiveException(request.getPolicyId()));
 
         Claim claim = mapper.toEntity(request);
+
+        if (!(claim.getClaimAmount().longValue() >= 0)) {
+            throw new InvalidClaimAmountException();
+        }
         claim.setPolicy(policy);
         claim.setClaimStatus(ClaimStatus.SUBMITTED);
         claim.setClaimDate(LocalDate.now());
@@ -108,6 +121,40 @@ public class ClaimServiceImpl implements ClaimService {
                 id, oldStatus, claim.getClaimStatus());
 
         return mapper.toResponse(claim);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListClaimsResponse listClaims(
+            Long policyId,
+            ClaimStatus status,
+            int limit,
+            int offset
+    ) {
+        log.info("Listing claims policyId={}, status={}, limit={}, offset={}",
+                policyId, status, limit, offset);
+
+        limit = Math.min(limit <= 0 ? 20 : limit, 100);
+        offset = Math.max(offset, 0);
+
+        Pageable pageable = PageRequest.of(offset / limit, limit,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Specification<Claim> spec = ClaimSpecification.filter(policyId, status);
+
+        Page<Claim> page = claimRepository.findAll(spec, pageable);
+
+        List<ClaimResponse> responses = page.getContent()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
+
+        return ListClaimsResponse.builder()
+                .data(responses)
+                .total(page.getTotalElements())
+                .limit(limit)
+                .offset(offset)
+                .build();
     }
 
     private String generateNumber() {
