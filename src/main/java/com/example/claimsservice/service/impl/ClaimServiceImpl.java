@@ -49,19 +49,21 @@ public class ClaimServiceImpl implements ClaimService {
     public ClaimResponse createClaim(CreateClaimRequest request) {
 
         log.debug("Creating claim for policy {}", request.getPolicyId());
-
+        // Policy must be ACTIVE in order to create new Claim
         Policy policy = policyRepository
-                .findByPolicyIdAndPolicyStatus(
-                        request.getPolicyId(),
-                        PolicyStatus.ACTIVE
-                )
-                .orElseThrow(() -> new PolicyNotActiveException(request.getPolicyId()));
+            .findByPolicyIdAndPolicyStatus(
+                    request.getPolicyId(),
+                    PolicyStatus.ACTIVE
+            )
+            .orElseThrow(() -> new PolicyNotActiveException(request.getPolicyId()));
 
         Claim claim = mapper.toEntity(request);
 
+        //The ClaimAmount must greater than 0
         if (!(claim.getClaimAmount().longValue() >= 0)) {
             throw new InvalidClaimAmountException();
         }
+
         claim.setPolicy(policy);
         claim.setClaimStatus(ClaimStatus.SUBMITTED);
         claim.setClaimDate(LocalDate.now());
@@ -91,6 +93,8 @@ public class ClaimServiceImpl implements ClaimService {
 
         ClaimStatus oldStatus = claim.getClaimStatus();
 
+        // Only allow transitions: SUBMITTED → APPROVED or SUBMITTED → REJECTED
+        // Cannot transition from APPROVED or REJECTED
         if (oldStatus != ClaimStatus.SUBMITTED) {
             throw new InvalidStatusTransitionException();
         }
@@ -99,6 +103,8 @@ public class ClaimServiceImpl implements ClaimService {
             throw new InvalidStatusTransitionException();
         }
 
+        //  If newStatus is APPROVED, approvedAmount must be provided and > 0
+        //  approvedAmount cannot exceed claimAmount
         if (request.getNewStatus() == ClaimStatus.APPROVED) {
 
             if (request.getApprovedAmount() == null ||
@@ -115,6 +121,7 @@ public class ClaimServiceImpl implements ClaimService {
 
         claim.setClaimStatus(request.getNewStatus());
 
+        // log changes to history table
         auditService.logStatusChange(claim, oldStatus, request.getNote());
 
         log.info("Claim {} status updated from {} to {}",
