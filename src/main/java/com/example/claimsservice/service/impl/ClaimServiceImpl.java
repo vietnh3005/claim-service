@@ -60,7 +60,7 @@ public class ClaimServiceImpl implements ClaimService {
         Claim claim = mapper.toEntity(request);
 
         //The ClaimAmount must greater than 0
-        if (!(claim.getClaimAmount().longValue() >= 0)) {
+        if (!(claim.getClaimAmount().longValue() > 0)) {
             throw new InvalidClaimAmountException();
         }
 
@@ -126,6 +126,8 @@ public class ClaimServiceImpl implements ClaimService {
 
         log.info("Claim {} status updated from {} to {}",
                 id, oldStatus, claim.getClaimStatus());
+
+        claimRepository.save(claim);
 
         return mapper.toResponse(claim);
     }
