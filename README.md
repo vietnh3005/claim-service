@@ -1,1 +1,370 @@
-Initial commit
+# Claims Processing Service
+
+A Spring Boot–based Claims Processing API for a TPA (Third Party Administrator) insurance system.
+
+This service allows:
+- Creating claims
+- Validating against policies
+- Updating claim status
+- Filtering and pagination
+- Tracking status history
+- OpenAPI documentation
+- Oracle RDS persistence
+
+---
+
+# 🧱 Tech Stack
+
+- Java 17
+- Spring Boot 3.2.x
+- Spring Data JPA
+- Flyway
+- Oracle RDS
+- MapStruct
+- Lombok
+- Swagger/OpenAPI
+- JUnit 5 + Mockito
+- H2 (for tests)
+
+---
+
+# 📦 Project Structure
+
+```
+com.example.claimsservice
+├── audit
+├── config
+├── controller
+├── entity
+│   ├── dto
+│   ├── enums
+│   ├── request
+│   ├── response
+├── mapper
+├── exception
+├── logging
+├── service
+│   ├── impl
+├── repository
+│   ├── spec
+```
+
+---
+
+# ⚙️ Setup Instructions
+
+## 1️⃣ Prerequisites
+
+Install:
+
+- Java 17
+- Maven
+- Oracle DB / Oracle RDS
+- IntelliJ (recommended)
+
+Check Java:
+
+```bash
+java -version
+```
+
+Should show:
+
+```
+17.x
+```
+
+---
+
+## 2️⃣ Configure Database
+
+Edit:
+
+```
+src/main/resources/application.properties
+```
+
+Example:
+
+```properties
+spring.datasource.url=jdbc:oracle:thin:@database-1.c7a44gs8mdbv.ap-southeast-1.rds.amazonaws.com:1521:ORCL
+spring.datasource.username=admin
+spring.datasource.password=NO0EgbS9Hakva9qgloAW
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
+
+spring.flyway.enabled=true
+```
+
+---
+
+## 3️⃣ Run the App
+
+```bash
+mvn spring-boot:run
+```
+
+Or from IntelliJ:
+
+```
+Run → ClaimsServiceApplication
+```
+
+---
+
+## 4️⃣ Open Swagger UI
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+OpenAPI JSON:
+
+```
+http://localhost:8080/v3/api-docs
+```
+
+---
+
+# 🧪 How to Run Tests
+
+Run all tests:
+
+```bash
+mvn -Dtest=ClaimServiceImplTest test
+mvn -Dtest=ClaimControllerIT test
+```
+
+In IntelliJ:
+
+```
+Right click → Run Tests
+```
+
+---
+
+# 🧪 Test Strategy
+
+## Unit Tests
+
+Focused on:
+- Business logic
+- Validation rules
+- Status transitions
+- Exception handling
+
+Technologies:
+- Mockito
+- JUnit 5
+
+Coverage target:
+```
+≥ 70% service layer
+```
+
+---
+
+## Integration Tests
+
+Focused on:
+- Controller → Service → Repository flow
+- JPA mappings
+- Query correctness
+- Pagination
+
+Technologies:
+- H2 in-memory DB
+- @SpringBootTest
+- @DataJpaTest
+
+---
+
+# 🗄 Database Design
+
+Core tables:
+
+- POLICY
+- CLAIM
+- CLAIM_STATUS_HISTORY
+
+Key principles:
+
+- ACID transactions
+- Foreign key integrity
+- Indexed for search
+- Oracle-compatible schema
+
+Flyway handles:
+
+- Schema creation
+- Seed data
+- Versioned migrations
+
+---
+
+# 📊 API Endpoints
+
+## Create Claim
+```
+POST /api/claims
+```
+
+## Get Claim
+```
+GET /api/claims/{id}
+```
+
+## List Claims
+```
+GET /api/claims?policyId=&status=&limit=&offset=
+```
+
+## Update Status
+```
+PATCH /api/claims/{id}
+```
+
+---
+
+# 🧠 Design Decisions & Trade-offs
+
+## 1️⃣ Layered Architecture
+
+```
+Controller → Service → Repository → DB
+```
+
+Why:
+- Clear separation of concerns
+- Easier testing
+- Maintainability
+
+---
+
+## 2️⃣ JPA + Specification
+
+Used for:
+- Dynamic filtering
+- Pagination
+- Clean query logic
+
+Trade-off:
+- Slightly more complex than simple queries
+- Much more flexible long-term
+
+---
+
+## 3️⃣ Flyway for Schema Management
+
+Why:
+- Version-controlled migrations
+- Works well with Oracle
+- Easy environment sync
+
+Trade-off:
+- Requires discipline for schema evolution
+
+---
+
+## 4️⃣ MapStruct for DTO Mapping
+
+Why:
+- Compile-time safe
+- Fast
+- Cleaner than manual mapping
+
+Trade-off:
+- Additional build-time dependency
+
+---
+
+## 5️⃣ Custom Exceptions
+
+Used for:
+
+- BusinessException
+- ClaimNotFoundException
+- InvalidClaimAmountException
+- InvalidStatusTransitionException
+- PolicyNotActiveException
+
+Why:
+- Clean error handling
+- Proper HTTP status mapping
+- Clear API responses
+
+---
+
+## 6️⃣ Transaction Boundaries
+
+Used on:
+
+createClaim()
+updateClaimStatus()
+
+Why:
+- Ensure consistency
+- Prevent partial updates
+
+---
+
+## 7️⃣ Status History Tracking
+
+Every status change:
+
+SUBMITTED → APPROVED
+SUBMITTED → REJECTED
+
+Is recorded in:
+
+CLAIM_STATUS_HISTORY
+
+Why:
+- Auditability
+- Regulatory compliance
+
+---
+
+# 🧪 Performance Considerations
+
+- Indexed columns:
+  - policy_id
+  - claim_status
+  - created_at
+
+- Lazy loading to avoid N+1
+
+- Pagination enforced (max 100)
+
+---
+
+# 🔐 Assumptions Made
+
+1. Policy service is external (simulated via POLICY table), so I created a script to seed the sample Policy data
+2. Policy must be ACTIVE to create claims
+3. Claim status transitions allowed:
+
+SUBMITTED → APPROVED
+SUBMITTED → REJECTED
+
+4. APPROVED requires approvedAmount
+5. approvedAmount ≤ claimAmount
+6. CLAIM_NUMBER is generated by service
+
+---
+
+# 🚀 Future Improvements
+
+- Use secret manager for manage the Oracle RDS information and change accessibility of the connection to PRIVATE. Due to the deadline, I'm going to expose the RDS connection and leave the DB configuration to PUBLIC for easier testing. In the future, product environment, we should limited access so connection can only be established from EC2 instance where we deploy the app.
+- Redis caching for policy lookup
+- Kafka event publishing on status change in CLAIM_STATUS_HISTORY
+- Claim document upload
+- OAuth2 / JWT security
+- Idempotency keys
+- Search/Filter Enhancements
+  - Filter by claim date range
+  - Filter by claim amount range
+  - Sort by different fields
+---
